@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import android.view.View
 import java.io.File
 import java.io.FileOutputStream
+import androidx.core.graphics.createBitmap
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
@@ -28,7 +29,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     // Create bitmap and canvas when view size is determined
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        bitmap = createBitmap(w, h, Bitmap.Config.ARGB_8888)
         canvasBitmap = Canvas(bitmap)
     }
 
@@ -45,15 +46,16 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         val y = event.y
 
         when (event.action) {
-            MotionEvent.ACTION_DOWN -> drawPath.moveTo(x, y) // start path
-            MotionEvent.ACTION_MOVE -> drawPath.lineTo(x, y) // continue path
+            MotionEvent.ACTION_DOWN -> drawPath.moveTo(x, y)
+            MotionEvent.ACTION_MOVE -> drawPath.lineTo(x, y)
             MotionEvent.ACTION_UP -> {
-                canvasBitmap.drawPath(drawPath, paint) // draw path to bitmap
-                drawPath.reset() // reset for next stroke
+                canvasBitmap.drawPath(drawPath, paint)
+                drawPath.reset()
+                performClick() // 🔔 This is what Android Studio is warning you to include
             }
         }
 
-        invalidate() // redraw view
+        invalidate()
         return true
     }
 
@@ -64,7 +66,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     }
 
     // Save the drawing to internal storage as a PNG file
-    fun saveDrawingToFile(context: Context): File? {
+    fun saveDrawingToFile(context: Context): File {
         val drawingsDir = File(context.filesDir, "drawings")
         if (!drawingsDir.exists()) {
             drawingsDir.mkdirs()
@@ -76,5 +78,10 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         outputStream.flush()
         outputStream.close()
         return file
+    }
+    override fun performClick(): Boolean {
+        super.performClick()
+        // Optional: add custom click logic here
+        return true
     }
 }
