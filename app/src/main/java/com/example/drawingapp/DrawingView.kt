@@ -9,6 +9,7 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.core.graphics.createBitmap
 
+// Custom view for drawing on screen with touch input
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     // Initialize path and paint for drawing
@@ -39,6 +40,11 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         canvas.drawBitmap(bitmap, 0f, 0f, null) // permanent drawing
         canvas.drawPath(drawPath, paint) // active drawing path
     }
+    // Required override to support accessibility
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
 
     // Handle touch events to draw with finger
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -51,7 +57,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             MotionEvent.ACTION_UP -> {
                 canvasBitmap.drawPath(drawPath, paint)
                 drawPath.reset()
-                performClick() // 🔔 This is what Android Studio is warning you to include
+                performClick()
             }
         }
 
@@ -67,21 +73,17 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
     // Save the drawing to internal storage as a PNG file
     fun saveDrawingToFile(context: Context): File {
-        val drawingsDir = File(context.filesDir, "drawings")
+        val drawingsDir = File(context.filesDir, "drawings") // Directory to save drawings
         if (!drawingsDir.exists()) {
-            drawingsDir.mkdirs()
+            drawingsDir.mkdirs()  // Create directory if it doesn't exist
         }
-
+        // Create unique file name based on current time
         val file = File(drawingsDir, "drawing_${System.currentTimeMillis()}.png")
+        // Save bitmap as PNG to file
         val outputStream = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
         outputStream.flush()
         outputStream.close()
         return file
-    }
-    override fun performClick(): Boolean {
-        super.performClick()
-        // Optional: add custom click logic here
-        return true
     }
 }
